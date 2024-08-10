@@ -12,6 +12,18 @@ export const register = async (req, res) => {
     try {
         const { username, email, password } = req.body
 
+        if (!username) {
+            return responseError(res, 'Please provide a username')
+        }
+
+        if (!email) {
+            return responseError(res, 'Please provide a email')
+        }
+
+        if (!password) {
+            return responseError(res, 'Please provide a password')
+        }
+
         const checkUsername = await userModel.findOne({
             username,
         })
@@ -48,6 +60,14 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
     const { username, password } = req.body
+
+    if (!username) {
+        return responseError(res, 'Please provide a username')
+    }
+
+    if (!password) {
+        return responseError(res, 'Please provide a password')
+    }
 
     const user = await userModel.findOne({
         username: username,
