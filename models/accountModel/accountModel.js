@@ -7,6 +7,10 @@ const AccountSchema = new mongoose.Schema({
     balance: {
         type: Number,
     },
+    initialBalance: {
+        type: Number,
+        required: true,
+    },
     type: {
         type: String,
     },

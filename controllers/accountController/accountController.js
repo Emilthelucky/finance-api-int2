@@ -8,7 +8,6 @@ const createAccount = async (req, res) => {
     const { name, balance, type, description, userName } = req.body
 
     try {
-        console.log(userName)
         if (!userName) {
             return responseError(res, 'User Not Found!')
         }
@@ -17,7 +16,7 @@ const createAccount = async (req, res) => {
             return responseError(res, 'Account Name Required!')
         }
 
-        if (!balance) {
+        if (balance === undefined) {
             return responseError(res, 'Balance Required!')
         }
 
@@ -25,25 +24,23 @@ const createAccount = async (req, res) => {
             return responseError(res, 'Type Required!')
         }
 
-        const acc = await accountModel.findOne({
-            name: name,
-        })
+        const acc = await accountModel.findOne({ name })
         if (acc) {
-            return responseError(res, 'This Account Name is Exists!')
+            return responseError(res, 'This Account Name already exists!')
         }
 
         const newAccount = await accountModel.create({
             name,
             balance,
+            initialBalance: balance,
             type,
             description,
         })
-        await newAccount.save()
+
+        console.log(newAccount)
 
         const user = await userModel
-            .findOne({
-                username: userName,
-            })
+            .findOne({ username: userName })
             .populate('accounts')
         if (!user) {
             return responseError(res, 'User Not Found!')

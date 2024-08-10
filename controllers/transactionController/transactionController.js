@@ -99,6 +99,8 @@ export const getTransactions = async (req, res) => {
                 },
             })
 
+        console.log(user)
+
         if (!user) {
             return responseError(res, 'User Not Found!')
         }
