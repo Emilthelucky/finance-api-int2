@@ -180,3 +180,77 @@ export const deleteReport = async (req, res) => {
         return responseError(res, 'Server error')
     }
 }
+
+export const updateReport = async (req, res) => {
+    const { operation, field, value, reports } = req.body
+
+    // Input validation
+    if (
+        !operation ||
+        !field ||
+        !reports ||
+        !Array.isArray(reports) ||
+        reports.length === 0
+    ) {
+        return responseError(res, 'Invalid input data')
+    }
+
+    if (operation !== 'Update' && operation !== 'Delete') {
+        return responseError(res, 'Invalid operation')
+    }
+
+    try {
+        // Perform the specified operation (update or delete)
+        const updatePromises = reports.map(async (id) => {
+            const report = await reportModel.findById(id)
+            if (!report) {
+                return { id, error: 'Report not found' }
+            }
+
+            if (operation === 'Update') {
+                // Check if the field to be updated is valid
+                if (
+                    ![
+                        'reportType',
+                        'reportTitle',
+                        'details',
+                        'transaction',
+                        'email',
+                        'sent',
+                    ].includes(field)
+                ) {
+                    return { id, error: 'Invalid field' }
+                }
+
+                // Update the specified field
+                report[field] = value
+
+                // Automatically set sent to false if updating a field other than sent
+                if (field !== 'sent') {
+                    report.sent = false
+                }
+
+                await report.save()
+                return { id, success: true }
+            } else if (operation === 'Delete') {
+                await report.remove()
+                return { id, success: true }
+            }
+        })
+
+        // Wait for all operations to complete and filter errors
+        const results = await Promise.all(updatePromises)
+        const errors = results.filter((result) => result.error)
+
+        if (errors.length > 0) {
+            return responseError(res, 'Some reports could not be processed', {
+                results,
+            })
+        }
+
+        responseSuccess(res, results)
+    } catch (err) {
+        console.error('Error updating reports:', err)
+        return responseError(res, 'Server error')
+    }
+}
